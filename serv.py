@@ -1,6 +1,12 @@
 import socket
+import sqlite3 as sl
+con = sl.connect('my-test.sql')
+with con:
+    data = con.execute("SELECT * FROM USER ")
+    for row in data:
+        print(row)
 sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-sock.bind (('127.0.0.1',5000))
+sock.bind (('192.168.1.76',5000))
 client = [] # Массив где храним адреса клиентов
 print ('Start Server')
 while 1 :
