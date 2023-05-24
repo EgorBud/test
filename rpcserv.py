@@ -4,9 +4,9 @@ def btn_click(comp_choise, choise):
     if choise == comp_choise:
         print("Ничья")
         return 0
-    elif choise == 1 and comp_choise == 2 \
-            or choise == 2 and comp_choise == 3 \
-            or choise == 3 and comp_choise == 1:
+    elif choise == '1' and comp_choise == '2' \
+            or choise == '2' and comp_choise == '3' \
+            or choise == '3' and comp_choise == '1':
         print("Победа 1")
         return 1
     else:
@@ -17,8 +17,20 @@ def btn_click(comp_choise, choise):
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.bind (('192.168.1.76',5000))
 print ('Start Server')
+
 sock.listen()
 conn1, addres1 = sock.accept()
 conn2, addres2 = sock.accept()
-ch1=conn1.recv(1024)
-ch2=conn2.recv(1024)
+while True:
+
+    ch1=conn1.recv(1024).decode()
+    ch2=conn2.recv(1024).decode()
+
+    res=str(btn_click(ch1, ch2))
+    if ch1 == '0' or ch2 == '0':
+        break
+    conn1.sendall(str.encode(res))
+    conn2.sendall(str.encode(res))
+conn1.close()
+
+conn2.close()

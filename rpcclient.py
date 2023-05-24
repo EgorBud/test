@@ -9,5 +9,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         alias = input()
         s.sendall(alias.encode())
-        data = s.recv(1024)
-        print(f"Received {data!r}")
+        #data = s.recv(1024)
+        #print(f"Received {data!r}")
