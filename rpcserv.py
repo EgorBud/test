@@ -25,12 +25,13 @@ while True:
 
     ch1=conn1.recv(1024).decode()
     ch2=conn2.recv(1024).decode()
-
-    res=str(btn_click(ch1, ch2))
     if ch1 == '0' or ch2 == '0':
         break
+    res=str(btn_click(ch1, ch2))
+
     conn1.sendall(str.encode(res))
     conn2.sendall(str.encode(res))
+
 conn1.close()
 
 conn2.close()

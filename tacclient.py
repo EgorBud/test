@@ -9,6 +9,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     def read_sok():
         while 1:
             data = s.recv(1024)
+            if(data.decode('utf-8')==('end')):
+                s.close()
+                break
             print(data.decode('utf-8'))
 
     s.connect((HOST, PORT))
@@ -17,7 +20,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     while True:
 
         alias = input()
-        s.sendall(alias.encode())
+        try:
+            s.sendall(alias.encode())
+        except:
+            break
         #data = s.recv(1024)
         #print(f"Received {data!r}")
 

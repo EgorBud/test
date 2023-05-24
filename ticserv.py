@@ -3,10 +3,10 @@ import socket
 
 board = list(range(1,10))
 def draw_board(board, conn1, conn2):
-    s= ("-------------", '\n'')
+    s= ("-------------"+ '\n')
     for i in range(3) :
-        s+= ("|", board[0+i*3], "|", board[1+i*3], "|", board[2+i*3], "|", '\n')
-        s+= ("-------------",'\n')
+        s+= ("|"+ str(board[0+i*3])+ "|"+ str(board[1+i*3])+ "|"+ str(board[2+i*3])+ "|"+ '\n')
+        s+= ("-------------"+'\n')
     conn2.sendall(str.encode(s))
     conn1.sendall(str.encode(s))
 def take_input(player_token, conn):
@@ -63,3 +63,7 @@ sock.listen()
 conn1, addres1 = sock.accept()
 conn2, addres2 = sock.accept()
 main(board, conn1, conn2)
+conn1.sendall(str.encode('end'))
+conn2.sendall(str.encode('end'))
+conn2.close()
+conn1.close()
