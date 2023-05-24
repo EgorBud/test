@@ -1,21 +1,24 @@
 import socket
-sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+def btn_click(comp_choise, choise):
+
+    if choise == comp_choise:
+        print("Ничья")
+        return 0
+    elif choise == 1 and comp_choise == 2 \
+            or choise == 2 and comp_choise == 3 \
+            or choise == 3 and comp_choise == 1:
+        print("Победа 1")
+        return 1
+    else:
+        print("Проигрыш 1")
+        return -1
+
+
+sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.bind (('192.168.1.76',5000))
-client = [] # Массив где храним адреса клиентов
 print ('Start Server')
-while 1 :
-         conn , addres = sock.recvfrom(1024)
-         print (addres)
-         with conn:
-             print(f"Connected by {addres}")
-             while True:
-                 data = conn.recv(1024)
-                 if not data:
-                     break
-                 conn.sendall(data)
-         if  addres not in client :
-                 client.append(addres)# Если такого клиента нету , то добавить
-         for clients in client :
-                 if clients == addres :
-                     continue # Не отправлять данные клиенту, который их прислал
-                 sock.sendto(data,clients)
+sock.listen()
+conn1, addres1 = sock.accept()
+conn2, addres2 = sock.accept()
+ch1=conn1.recv(1024)
+ch2=conn2.recv(1024)

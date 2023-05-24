@@ -1,7 +1,7 @@
 import socket
 from _thread import *
 
-host = '127.0.0.1'
+host = '192.168.1.76'
 port = 1233
 ThreadCount = 0
 
