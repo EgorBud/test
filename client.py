@@ -1,22 +1,21 @@
 import socket
-import threading
-def read_sok():
-    while 1 :
-        data = sor.recv(1024)
-        print(data.decode('utf-8'))
-server = ('192.168.1.76', 5000)# Данные сервера
-sor = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-sor.connect(server)
-alias = input() # Вводим наш псевдоним
+host = '127.0.0.1'
+port = 1233
 
-
-
-#sor.bind(('127.0.0.10', 0)) # Задаем сокет как клиент
-
-sor.sendall(alias.encode())# Уведомляем сервер о подключении
-potok = threading.Thread(target= read_sok)
-
-potok.start()
-while 1 :
-    mensahe = input()
-    sor.sendall(mensahe.encode())#
+ClientSocket = socket.socket()
+print('Waiting for connection')
+try:
+    ClientSocket.connect((host, port))
+except socket.error as e:
+    print(str(e))
+Response = ClientSocket.recv(2048)
+while True:
+    Input = input('Your message: ')
+    ClientSocket.send(str.encode(Input))
+    Response = ClientSocket.recv(2048)
+    print(Response.decode('utf-8'))
+    if Input == 'BYE':
+        break
+    if Response.decode('utf-8') == 'BYE':
+        break
+ClientSocket.close()
