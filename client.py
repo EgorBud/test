@@ -1,11 +1,9 @@
 
 import json
 import socket
-import threading
-import pickle
 
-HOST = "192.168.1.76"  # The server's hostname or IP address
-PORT = 1234  # The port used by the server
+HOST = '46.73.166.77'
+PORT = 3000
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
     i=0

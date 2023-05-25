@@ -1,9 +1,11 @@
 import socket
-import struct
 from _thread import *
 import json
 import sqlite3 as sl
 import asyncio
+
+HOST='46.73.166.77'
+PORT =3000
 
 con = sl.connect('users.sql')
 cursor = con.cursor()
@@ -202,21 +204,7 @@ async def ticroom(conn,j):
         await asyncio.wait_for(tictactoe(ticwaiters[key], conn), timeout=None)
         loop.create_task(client_handler(ticwaiters[key]))
         ticwaiters[key]=None
-        
-        
-'''async def add(conn,j):
-    global waiter
-    loop = asyncio.get_event_loop()
-    if(waiter is None):
-        waiter=conn
-        await loop.sock_sendall(conn, str.encode(json.dumps({"task": 'wait', 'show': 'waiting for opponent'})))
-        asyncio.current_task().cancel()
-    else:
-        await loop.sock_sendall(waiter, str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
-        await asyncio.wait_for(tictactoe(waiter, conn), timeout=None)
-        loop.create_task(client_handler(waiter))
-        waiter=None
-'''
+
 async def fun(conn, j):
     print('ok')
 async def skip(conn, j):
@@ -259,7 +247,7 @@ def accept_connections(ServerSocket):
 
 async def run_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('192.168.1.76', 1234))
+    server.bind((HOST, PORT))
     server.listen()
     server.setblocking(False)
 
