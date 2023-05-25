@@ -5,7 +5,7 @@ import sqlite3 as sl
 import asyncio
 
 HOST='46.73.166.77'
-PORT =3000
+PORT =3003
 
 con = sl.connect('users.sql')
 cursor = con.cursor()

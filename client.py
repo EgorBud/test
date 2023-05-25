@@ -3,7 +3,7 @@ import json
 import socket
 
 HOST = '46.73.166.77'
-PORT = 3000
+PORT = 3003
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
     i=0
