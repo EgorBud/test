@@ -7,9 +7,14 @@ import asyncio
 
 con = sl.connect('users.sql')
 cursor = con.cursor()
+rpcwaiters= {'dict': socket}
 
-waiter=None
+ticwaiters= {'dict': socket}
+ticwaiters.clear()
+rpcwaiters.clear()
+'''waiter
 print(waiter)
+'''
 class user:
     def __init__(self, login, password,tscore ,rpsscore ):
         self.login = login
@@ -83,15 +88,25 @@ async def tic( conn1, conn2, board = list(range(1,10))):
             if tmp:
                 print (tmp, "выиграл!")
                 win = True
+                if(tmp=='X'):
+                    return -1
+                else:
+                    return 1
                 break
         if counter == 9:
             print ("Ничья!")
+            return 0
             break
     await draw_board(board, conn1, conn2)
 
 
 async def tictactoe(conn1, conn2):
-    await tic(conn1, conn2)
+    loop = asyncio.get_event_loop()
+    res=(await tic(conn1, conn2))
+    m1 = {"task": 'show', "result": res}
+    m2 = {"task": 'show', "result": -res}
+    await loop.sock_sendall(conn1, str.encode((str(json.dumps(m2)))))
+    await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
 async def new(conn, json):
     passw=json['pas']
     log=json['log']
@@ -150,25 +165,58 @@ async def rpc(conn1, conn2):
     #await asyncio.wait(btn_click((loop.sock_recv(conn1, 1024)).decode('utf8'), (loop.sock_recv(conn2, 1024)).decode('utf8'), res))
     print(f)
     res=btn_click(json.loads(f[0].decode('utf8')),json.loads(f[1].decode('utf8')))
-    await loop.sock_sendall(conn1, str.encode((str(res))))
-    await loop.sock_sendall(conn2, str.encode(str(-res)))
+    m1 = {"task": 'show', "result":res}
+    m2 = {"task": 'show', "result":-res}
+    await loop.sock_sendall(conn1, str.encode((str(json.dumps(m2)))))
+    await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
 async  def jail():
     await asyncio.wait(10)
     print('jil')
-async def add(conn,j):
+
+async def rpcroom(conn, j):
+    loop = asyncio.get_event_loop()
+    global rpcwaiters
+    key = j["key"]
+
+    if ((rpcwaiters.get(key)) is None):
+        rpcwaiters[key] = conn
+        await loop.sock_sendall(conn, str.encode(json.dumps({"task": 'wait', 'show': 'waiting for opponent'})))
+        asyncio.current_task().cancel()
+
+    else:
+        await loop.sock_sendall(rpcwaiters[key], str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
+        await asyncio.wait_for(rpc(rpcwaiters[key], conn), timeout=None)
+        loop.create_task(client_handler(rpcwaiters[key]))
+        rpcwaiters[key] = None
+async def ticroom(conn,j):
+    loop = asyncio.get_event_loop()
+    global ticwaiters
+    key=j['key']
+    if((ticwaiters.get(key)) is None):
+        ticwaiters[key]=conn
+        await loop.sock_sendall(conn, str.encode(json.dumps({"task": 'wait', 'show': 'waiting for opponent'})))
+        asyncio.current_task().cancel()
+
+    else:
+        await loop.sock_sendall(ticwaiters[key], str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
+        await asyncio.wait_for(tictactoe(ticwaiters[key], conn), timeout=None)
+        loop.create_task(client_handler(ticwaiters[key]))
+        ticwaiters[key]=None
+        
+        
+'''async def add(conn,j):
     global waiter
     loop = asyncio.get_event_loop()
     if(waiter is None):
         waiter=conn
         await loop.sock_sendall(conn, str.encode(json.dumps({"task": 'wait', 'show': 'waiting for opponent'})))
         asyncio.current_task().cancel()
-
     else:
         await loop.sock_sendall(waiter, str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
         await asyncio.wait_for(tictactoe(waiter, conn), timeout=None)
-        await loop.create_task(client_handler(waiter))
+        loop.create_task(client_handler(waiter))
         waiter=None
-
+'''
 async def fun(conn, j):
     print('ok')
 async def skip(conn, j):

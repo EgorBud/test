@@ -17,16 +17,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             break
         try:
             message = json.loads(data)
+            print(message['show'])
             if(message['task']=='get'):
                 alias = input()
-                m = {"task": alias, "log": "man", "pas": "123"}
+                m = {"task": alias, "log": "man", "pas": "123", "key":'key'}
                 data = json.dumps(m)
                 s.sendall((bytes(data, encoding="utf-8")))
             if (message['task']== ('wait')):
                 data1=message
                 while(data1['task']!='stop'):
                     data1 = json.loads(s.recv(1024).decode('utf8'))
-                    print(data)
+                    print(data1)
                 continue
             if (message['task']== ('end')):
                 s.close()
