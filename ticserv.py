@@ -54,7 +54,7 @@ def main(board, conn1, conn2):
     draw_board(board, conn1, conn2)
 
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-sock.bind (('192.168.1.76',5000))
+sock.bind (('192.168.1.76',1234))
 client = [] # Массив где храним адреса клиентов
 print ('Start Server')
 

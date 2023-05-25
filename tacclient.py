@@ -3,7 +3,7 @@ import socket
 import threading
 
 HOST = "192.168.1.76"  # The server's hostname or IP address
-PORT = 5000  # The port used by the server
+PORT = 1233  # The port used by the server
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     def read_sok():

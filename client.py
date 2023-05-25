@@ -1,21 +1,83 @@
-import socket
-host = '192.168.1.76'
-port = 1233
 
-ClientSocket = socket.socket()
-print('Waiting for connection')
-try:
-    ClientSocket.connect((host, port))
-except socket.error as e:
-    print(str(e))
-Response = ClientSocket.recv(2048)
-while True:
-    Input = input('Your message: ')
-    ClientSocket.send(str.encode(Input))
-    Response = ClientSocket.recv(2048)
-    print(Response.decode('utf-8'))
-    if Input == 'BYE':
-        break
-    if Response.decode('utf-8') == 'BYE':
-        break
-ClientSocket.close()
+import json
+import socket
+import threading
+import pickle
+
+HOST = "192.168.1.76"  # The server's hostname or IP address
+PORT = 1234  # The port used by the server
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((HOST, PORT))
+    i=0
+    while(1):
+        data = s.recv(1024).decode('utf8')
+        print(data)
+        if not data:
+            s.close()
+            break
+        try:
+            message = json.loads(data)
+            if(message['task']=='get'):
+                alias = input()
+                m = {"task": alias, "log": "man", "pas": "123"}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+            if (message['task']== ('wait')):
+                data1=message
+                while(data1['task']!='stop'):
+                    data1 = json.loads(s.recv(1024).decode('utf8'))
+                    print(data)
+                continue
+            if (message['task']== ('end')):
+                s.close()
+                break
+        except Exception as e:
+            print(e)
+        if (i==1):
+            i = 2
+            continue
+
+'''
+import json
+import socket
+import threading
+import pickle
+
+HOST = "192.168.1.76"  # The server's hostname or IP address
+PORT = 1234  # The port used by the server
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((HOST, PORT))
+    i=0
+    while(1):
+        data = s.recv(1024).decode('utf8')
+        print(data)
+        if not data:
+            s.close()
+            break
+        try:
+            message = json.loads(data)
+            if(i==2 and message['task']=='get'):
+                m = {"task": 'skip'}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+                i=0
+                continue
+            if(message['task']=='get' and i==0):
+                alias = input()
+                m = {"task": alias, "log": "man", "pas": "123"}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+            if (message['task']== ('wait')):
+                i=1
+                continue
+            if (message['task']== ('end')):
+                s.close()
+                break
+        except Exception as e:
+            print(e)
+        if (i==1):
+            i = 2
+            continue
+
+
+'''

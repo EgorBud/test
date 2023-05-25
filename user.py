@@ -23,7 +23,7 @@ def load (log: str):
     us=user()
     temp = (cursor.fetchone())
     if (temp is None):
-        return -1
+        return None
     us.login     =temp[0]
     us.password   = temp[1]
     us.tscore    = temp[2]
