@@ -1,8 +1,10 @@
 # our base image
-FROM python:3-onbuild
+FROM python:3.10
 
 # specify the port number the container should expose
-EXPOSE 3000
+EXPOSE 3003
+
+COPY . /serv.py
 
 # run the application
-CMD ["python", "./serv.py"]
+CMD ["python", "serv.py"]
