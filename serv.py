@@ -1,10 +1,9 @@
 import socket
-from _thread import *
 import json
 import sqlite3 as sl
 import asyncio
 
-HOST='46.73.166.77'
+HOST='0.0.0.0'
 PORT =3003
 
 con = sl.connect('users.sql')
@@ -34,8 +33,7 @@ m = {"task": 'get'}
 
 get= json.dumps(m)
 
-async def draw_board(board, conn1, conn2):
-    loop = asyncio.get_event_loop()
+def draw_board(board, conn1, conn2):
     s= ("-------------"+ '\n')
     for i in range(3) :
         s+= ("|"+ str(board[0+i*3])+ "|"+ str(board[1+i*3])+ "|"+ str(board[2+i*3])+ "|"+ '\n')
@@ -44,13 +42,13 @@ async def draw_board(board, conn1, conn2):
 '''    await loop.sock_sendall(conn1, str.encode((json.dumps({"task": 'get', 'show':s}))))
     await loop.sock_sendall(conn2, str.encode((json.dumps({"task": 'get', 'show':s}))))
 '''
-async def take_input(player_token, conn, board):
+async def take_input(player_token, conn, board, connchat):
     loop = asyncio.get_event_loop()
     valid = False
     await loop.sock_sendall(conn, str.encode((json.dumps({"task": 'get', 'show': "enter"}))))
     while not valid:
 
-        player_answer =   json.loads((await loop.sock_recv(conn, 1024)).decode('utf8'))['task']
+        player_answer =  await chatchoise(conn, connchat)
         try:
             player_answer = int(player_answer)
         except:
@@ -71,16 +69,55 @@ async def check_win(board):
         if board[each[0]] == board[each[1]] == board[each[2]]:
             return board[each[0]]
     return False
+async def chat(conn1, conn2):
+    loop = asyncio.get_event_loop()
+    await loop.sock_sendall(conn1, str.encode(json.dumps({"task": 'get', 'show': 'messege will be recived'})))
+
+    while 1:
+
+        data = json.loads((await loop.sock_recv(conn1, 1024)).decode('utf8'))
+
+        if(data['task']==('chat')):
+            await loop.sock_sendall(conn2, str.encode(str(json.dumps(data))))
+            await loop.sock_sendall(conn1, str.encode(json.dumps({"task": 'get', 'show': 'messege recived'})))
+        if(data['task']==('end')):
+            print('s')
+            break
+        if not data:
+            break
+        print(data.decode('utf-8'))
+async def chatchoise(conn1, conn2):
+    loop = asyncio.get_event_loop()
+    task = asyncio.create_task(chat(conn2, conn1))
+    while 1:
+
+        data = json.loads((await loop.sock_recv(conn1, 1024)).decode('utf8'))
+
+        if (data['task'] == ('chat')):
+            await loop.sock_sendall(conn2, str.encode(str(json.dumps(data))))
+            await loop.sock_sendall(conn1, str.encode(json.dumps({"task": 'get', 'show': 'messege recived'})))
+
+        if (data['task'] == ('game')):
+            task.cancel()
+            return data['choise']
+            print('s')
+            break
+
+        if not data:
+            break
+        print(data['show'])
+    await task
+
 async def tic( conn1, conn2, board = list(range(1,10))):
     loop = asyncio.get_event_loop()
     counter = 0
     win = False
     while not win:
-        await draw_board(board, conn1, conn2)
+        draw_board(board, conn1, conn2)
         if counter % 2 == 0:
-            send=await  take_input("X", conn1, board)
+            send=await  take_input("X", conn1, board, conn2)
         else:
-            send=await take_input("O", conn2, board)
+            send=await take_input("O", conn2, board, conn1)
         await loop.sock_sendall(conn1, str.encode((json.dumps({"task": 'move', 'show': (send)}))))
         await loop.sock_sendall(conn2, str.encode((json.dumps({"task": 'move', 'show': (send)}))))
 
@@ -116,7 +153,6 @@ async def new(conn, json):
     data = [
         (log, passw, 0, 0)
     ]
-
     with con:
         con.executemany(sql, data)
 
@@ -132,7 +168,7 @@ async def load(conn:socket, data):
         return None
     if(temp[1]!=pas):
         await loop.sock_sendall(conn, str.encode('wrong password'))
-        return error
+        return 'error'
     us = user(temp[0], temp[1], temp[2], temp[3])
     '''us.login    = temp[0]
     us.password = temp[1]
@@ -145,7 +181,6 @@ async def load(conn:socket, data):
 
 
 def btn_click(comp_choise, choise, res=0):
-
     if choise == comp_choise:
         print("Ничья")
         res= 0
@@ -159,7 +194,6 @@ def btn_click(comp_choise, choise, res=0):
         print("Проигрыш 1")
         res= -1
     return res
-ThreadCount = 0
 async def rpc(conn1, conn2):
     loop = asyncio.get_event_loop()
     await asyncio.wait([loop.sock_sendall(conn1, str.encode(json.dumps({"task": 'get', 'show': 'choise'}))), loop.sock_sendall(conn2, str.encode(json.dumps({"task": 'get', 'show': 'choise'})))])
@@ -169,8 +203,10 @@ async def rpc(conn1, conn2):
     res=btn_click(json.loads(f[0].decode('utf8')),json.loads(f[1].decode('utf8')))
     m1 = {"task": 'show', "result":res}
     m2 = {"task": 'show', "result":-res}
-    await loop.sock_sendall(conn1, str.encode((str(json.dumps(m2)))))
+    await loop.sock_sendall(conn1, str.encode(str(json.dumps(m2))))
     await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
+    chat(conn1, conn2)
+    chat(conn2, conn1)
 async  def jail():
     await asyncio.wait(10)
     print('jil')
@@ -240,10 +276,7 @@ async def client_handler(conn):
 
 
 
-def accept_connections(ServerSocket):
-    Client, address = ServerSocket.accept()
-    print('Connected to: ' + address[0] + ':' + str(address[1]))
-    start_new_thread(client_handler, (Client, ))
+
 
 async def run_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -259,5 +292,6 @@ async def run_server():
             loop.create_task(client_handler(client))
         except asyncio.CancelledError:
             print('cancel_me(): отмена ожидания')
+
 
 asyncio.run(run_server())
