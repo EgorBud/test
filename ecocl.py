@@ -38,7 +38,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     user = data["user"]
     print(user)
     #g=input()
-    g='t'
+    g='r'
     if(g=="t"):
         #key=input()
         key="any"
@@ -78,26 +78,22 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print(data)
         if (data['task'] == "wait"):
             print("wait")
-        data = json.loads(s.recv(1024).decode('utf8'))
+            data = json.loads(s.recv(1024).decode('utf8'))
         print(data)
         potok = threading.Thread(target=read)
         print(22)
         potok.start()
-
+        t = input()
+        m = {"task": "game", "choise": t}
+        data = json.dumps(m)
+        s.sendall((bytes(data, encoding="utf-8")))
         while (potok.is_alive()):
-            g = input()
-            if (g != '1'):
-                mes = g
-                m = {"task": "chat", "show": mes}
-                data = json.dumps(m)
-                s.sendall((bytes(data, encoding="utf-8")))
-            else:
-                print("turn")
-                t = input()
-                m = {"task": "game", "choise": t}
-                data = json.dumps(m)
-                s.sendall((bytes(data, encoding="utf-8")))
 
+            g = input()
+            mes = g
+            m = {"task": "chat", "show": mes}
+            data = json.dumps(m)
+            s.sendall((bytes(data, encoding="utf-8")))
 
     s.close()
 

@@ -204,7 +204,7 @@ async def rpc(conn1, conn2):
     f= await asyncio.gather(loop.sock_recv(conn1, 1024), (loop.sock_recv(conn2, 1024)))
     #await asyncio.wait(btn_click((loop.sock_recv(conn1, 1024)).decode('utf8'), (loop.sock_recv(conn2, 1024)).decode('utf8'), res))
     print(f)
-    res=btn_click(json.loads(f[0].decode('utf8')),json.loads(f[1].decode('utf8')))
+    res=btn_click(json.loads(f[0].decode('utf8'))["choise"],json.loads(f[1].decode('utf8'))["choise"])
     m1 = {"task": 'end', "result":res}
     m2 = {"task": 'end', "result":-res}
     await loop.sock_sendall(conn1, str.encode(str(json.dumps(m2))))
