@@ -108,7 +108,8 @@ async def chatchoise(conn1, conn2):
         print(data['show'])
     await task
 
-async def tic( conn1, conn2, board = list(range(1,10))):
+async def tic( conn1, conn2):
+    board = list(range(1, 10))
     loop = asyncio.get_event_loop()
     counter = 0
     win = False
@@ -222,10 +223,11 @@ async def rpcroom(conn, j):
         asyncio.current_task().cancel()
 
     else:
-        await loop.sock_sendall(rpcwaiters[key], str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
-        await asyncio.wait_for(rpc(rpcwaiters[key], conn), timeout=None)
-        loop.create_task(client_handler(rpcwaiters[key]))
-        rpcwaiters[key] = None
+        player =  rpcwaiters[key]
+        rpcwaiters.pop(key)
+        await loop.sock_sendall(player, str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
+        await asyncio.wait_for(rpc(player, conn), timeout=None)
+        loop.create_task(client_handler(player))
 async def ticroom(conn,j):
     loop = asyncio.get_event_loop()
     global ticwaiters
@@ -236,10 +238,12 @@ async def ticroom(conn,j):
         asyncio.current_task().cancel()
 
     else:
-        await loop.sock_sendall(ticwaiters[key], str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
-        await asyncio.wait_for(tictactoe(ticwaiters[key], conn), timeout=None)
-        loop.create_task(client_handler(ticwaiters[key]))
-        ticwaiters[key]=None
+        player=ticwaiters[key]
+        ticwaiters.pop(key)
+        await loop.sock_sendall(player, str.encode(json.dumps({"task": 'stop', 'show': 'opponent found'})))
+        await asyncio.wait_for(tictactoe(player, conn), timeout=None)
+        loop.create_task(client_handler(player))
+
 
 async def fun(conn, j):
     print('ok')
