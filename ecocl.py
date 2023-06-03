@@ -1,10 +1,119 @@
-
+import threading
 import json
 import socket
 
 HOST = '127.0.0.1'
 PORT = 3003
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    def read():
+        while 1:
+            data = json.loads(s.recv(1024).decode('utf8'))
+            print(data)
+            if (data["task"] == ('chat')):
+                print(data["show"])
+            if (data["task"] == ("game")):
+                print("change board and let next move")
+                print(data["move"])
+            if (data["task"] == ("end")):
+                print("result:")
+                print(data["result"])
+                break
+            if not data:
+                break
+    s.connect((HOST, PORT))
+    data = s.recv(1024).decode('utf8')
+    i=0
+    while(i!=1):
+        login="man"
+        password="123"
+        #login=input()
+        #password=input()
+        m = {"task": "load", "log": login, "pas": password}
+        data = json.dumps(m)
+        s.sendall((bytes(data, encoding="utf-8")))
+        data = json.loads(s.recv(1024).decode('utf8'))
+        i=data["state"]
+        if(i!=1):
+            print(i)
+    user = data["user"]
+    print(user)
+    #g=input()
+    g='t'
+    if(g=="t"):
+        #key=input()
+        key="any"
+        m = {"task": "ticroom", "key":key}
+        data = json.dumps(m)
+        s.sendall((bytes(data, encoding="utf-8")))
+        data = json.loads(s.recv(1024).decode('utf8'))
+        print(data)
+        if(data['task']=="wait"):
+            print("wait")
+        data = json.loads(s.recv(1024).decode('utf8'))
+        print(data)
+        potok = threading.Thread(target=read)
+        print(22)
+        potok.start()
+
+        while(potok.is_alive()):
+            g=input()
+            if(g != '1'):
+                mes=g
+                m = {"task": "chat", "show": mes}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+            else:
+                print("turn")
+                t=input()
+                m = {"task": "game", "choise": t}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+    if (g == "r"):
+        # key=input()
+        key = "any"
+        m = {"task": "rpcroom", "key": key}
+        data = json.dumps(m)
+        s.sendall((bytes(data, encoding="utf-8")))
+        data = json.loads(s.recv(1024).decode('utf8'))
+        print(data)
+        if (data['task'] == "wait"):
+            print("wait")
+        data = json.loads(s.recv(1024).decode('utf8'))
+        print(data)
+        potok = threading.Thread(target=read)
+        print(22)
+        potok.start()
+
+        while (potok.is_alive()):
+            g = input()
+            if (g != '1'):
+                mes = g
+                m = {"task": "chat", "show": mes}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+            else:
+                print("turn")
+                t = input()
+                m = {"task": "game", "choise": t}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+
+
+    s.close()
+
+
+
+
+
+
+'''
+import json
+import socket
+
+HOST = '127.0.0.1'
+PORT = 3003
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+
     s.connect((HOST, PORT))
     i=0
     data = s.recv(1024).decode('utf8')
@@ -49,7 +158,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
 
 
-
+'''
 
 
 
