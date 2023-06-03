@@ -49,7 +49,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print(data)
         if(data['task']=="wait"):
             print("wait")
-        data = json.loads(s.recv(1024).decode('utf8'))
+            data = json.loads(s.recv(1024).decode('utf8'))
         print(data)
         potok = threading.Thread(target=read)
         print(22)
