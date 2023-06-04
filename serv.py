@@ -147,23 +147,72 @@ async def tictactoe(conn1, conn2):
     m2 = {"task": 'show', "result": -res}
     await loop.sock_sendall(conn1, str.encode((str(json.dumps(m2)))))
     await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
+    data1 = json.loads((await loop.sock_recv(conn1, 1024)).decode('utf8'))
+    data2 = json.loads((await loop.sock_recv(conn2, 1024)).decode('utf8'))
+    print(data2)
+    print(data1)
+    if(data2["task"]=="add"):
+        await tpoints(conn2, data2["log"])
+    if(data1["task"]=="add"):
+        await tpoints(conn1, data1["log"])
     await asyncio.gather(chat(conn1, conn2), chat(conn2, conn1))
-async def new(conn, json):
+async def new(conn, data):
     loop = asyncio.get_event_loop()
-    passw=json['pas']
-    log=json['log']
+    passw=data['pas']
+    log=data['log']
+
     sql = 'INSERT INTO users ( login,    password, tscore,   rpsscore ) values(?, ?, ?, ?)'
     data = [
         (log, passw, 0, 0)
+
     ]
     with con:
-        con.executemany(sql, data)
-    await loop.sock_sendall(conn, bytes(json.dumps((log, passw, 0, 0)), encoding="utf-8"))
-def tpoints(conn, data):
+        try:
+            con.execute(sql, data)
+        except Exception as e:
+            print(e)
+            await loop.sock_sendall(conn, str.encode(json.dumps({"state": 0, 'show': str(e)})))
+            return None
+    await loop.sock_sendall(conn, bytes(json.dumps({"state": 1 , "user":(log, passw, 0, 0)}), encoding="utf-8"))
+async def tpoints(conn, log):
     loop = asyncio.get_event_loop()
-    log = data['log']
-    cursor.execute("SELECT login,    password, tscore,  rpsscore  FROM users WHERE login=?", [(log)])
-    temp = (cursor.fetchone())
+    print(log)
+    sql = "UPDATE users SET tscore = (tscore + 1) WHERE login=?"
+    with con:
+        try:
+            con.execute(sql, [log])
+        except Exception as e:
+            print(e)
+            await loop.sock_sendall(conn, str.encode(json.dumps({"state": 0, 'show': str(e)})))
+            return None
+    cursor.execute("SELECT tscore FROM users WHERE login=?", [(log)])
+    print(3)
+    temp = (cursor.fetchall())
+    print(temp)
+    if (temp is None):
+        await loop.sock_sendall(conn, bytes(json.dumps({'state': 0}), encoding="utf-8"))
+        return None
+    await loop.sock_sendall(conn, bytes(json.dumps({"state": 1, 'newscore': temp}), encoding="utf-8"))
+async def rpcpoints(conn, log):
+    loop = asyncio.get_event_loop()
+    print(log)
+    sql = "UPDATE users SET rpsscore = (rpsscore + 1) WHERE login=?"
+    with con:
+        try:
+            con.execute(sql, [log])
+        except Exception as e:
+            print(e)
+            await loop.sock_sendall(conn, str.encode(json.dumps({"state": 0, 'show': str(e)})))
+            return None
+    cursor.execute("SELECT rpsscore FROM users WHERE login=?", [(log)])
+    print(3)
+    temp = (cursor.fetchall())
+    print(temp)
+    if (temp is None):
+        await loop.sock_sendall(conn, bytes(json.dumps({'state': 0}), encoding="utf-8"))
+        return None
+    await loop.sock_sendall(conn, bytes(json.dumps({"state": 1, 'newscore': temp}), encoding="utf-8"))
+
 async def load(conn:socket, data):
     loop = asyncio.get_event_loop()
     pas=data['pas']
@@ -213,6 +262,14 @@ async def rpc(conn1, conn2):
     m2 = {"task": 'show', "result":-res}
     await loop.sock_sendall(conn1, str.encode(str(json.dumps(m2))))
     await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
+    data1 = json.loads((await loop.sock_recv(conn1, 1024)).decode('utf8'))
+    data2 = json.loads((await loop.sock_recv(conn2, 1024)).decode('utf8'))
+    print(data2)
+    print(data1)
+    if(data2["task"]=="add"):
+        await rpcpoints(conn2, data2["log"])
+    if(data1["task"]=="add"):
+        await rpcpoints(conn1, data1["log"])
     await asyncio.gather(chat(conn1, conn2), chat(conn2, conn1))
 async  def jail():
     await asyncio.wait(10)
