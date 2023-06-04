@@ -80,6 +80,9 @@ async def chat(conn1, conn2):
         if(data['task']==('chat')):
             await loop.sock_sendall(conn2, str.encode(str(json.dumps(data))))
             await loop.sock_sendall(conn1, str.encode(json.dumps({"task": 'get', 'show': 'messege recived'})))
+        if(data['task']==('end')):
+            await loop.sock_sendall(conn1, str.encode(json.dumps({"task": 'end', 'show': 'exit from game'})))
+            await loop.sock_sendall(conn2, str.encode(json.dumps({"task": 'end', 'show': 'exit from game'})))
         if not data:
             break
         print(data['show'])
@@ -140,10 +143,11 @@ async def tic( conn1, conn2):
 async def tictactoe(conn1, conn2):
     loop = asyncio.get_event_loop()
     res=(await tic(conn1, conn2))
-    m1 = {"task": 'end', "result": res}
-    m2 = {"task": 'end', "result": -res}
+    m1 = {"task": 'show', "result": res}
+    m2 = {"task": 'show', "result": -res}
     await loop.sock_sendall(conn1, str.encode((str(json.dumps(m2)))))
     await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
+    await asyncio.gather(chat(conn1, conn2), chat(conn2, conn1))
 async def new(conn, json):
     loop = asyncio.get_event_loop()
     passw=json['pas']
@@ -205,12 +209,11 @@ async def rpc(conn1, conn2):
     #await asyncio.wait(btn_click((loop.sock_recv(conn1, 1024)).decode('utf8'), (loop.sock_recv(conn2, 1024)).decode('utf8'), res))
     print(f)
     res=btn_click(json.loads(f[0].decode('utf8'))["choise"],json.loads(f[1].decode('utf8'))["choise"])
-    m1 = {"task": 'end', "result":res}
-    m2 = {"task": 'end', "result":-res}
+    m1 = {"task": 'show', "result":res}
+    m2 = {"task": 'show', "result":-res}
     await loop.sock_sendall(conn1, str.encode(str(json.dumps(m2))))
     await loop.sock_sendall(conn2, str.encode(str(json.dumps(m1))))
-    chat(conn1, conn2)
-    chat(conn2, conn1)
+    await asyncio.gather(chat(conn1, conn2), chat(conn2, conn1))
 async  def jail():
     await asyncio.wait(10)
     print('jil')

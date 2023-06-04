@@ -14,9 +14,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             if (data["task"] == ("game")):
                 print("change board and let next move")
                 print(data["move"])
-            if (data["task"] == ("end")):
+            if (data["task"] == ("show")):
                 print("result:")
                 print(data["result"])
+            if (data["task"] == ("end")):
                 break
             if not data:
                 break
@@ -38,7 +39,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     user = data["user"]
     print(user)
     #g=input()
-    g='r'
+    g='t'
     if(g=="t"):
         #key=input()
         key="any"
@@ -90,6 +91,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         while (potok.is_alive()):
 
             g = input()
+            if(g=='0'):
+                m = {"task": "end"}
+                data = json.dumps(m)
+                s.sendall((bytes(data, encoding="utf-8")))
+
             mes = g
             m = {"task": "chat", "show": mes}
             data = json.dumps(m)
